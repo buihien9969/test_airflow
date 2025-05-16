@@ -24,7 +24,7 @@ airflow-docker/
 
 2. Clone repository này:
    ```
-   git clone <repository-url>
+   git clone https://github.com/buihien9969/test_airflow.git
    cd airflow
    ```
 
