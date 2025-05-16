@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from datetime import datetime
 from openlineage.airflow.extractors.base import TaskMetadata
 
@@ -10,11 +10,11 @@ default_args = {
 
 with DAG(
     dag_id='lineage_demo',
-    schedule_interval='@daily',
+    schedule='@daily',
     default_args=default_args,
     tags=['lineage']
 ) as dag:
-    start = DummyOperator(task_id='start')
-    end = DummyOperator(task_id='end')
+    start = EmptyOperator(task_id='start')
+    end = EmptyOperator(task_id='end')
 
     start >> end
