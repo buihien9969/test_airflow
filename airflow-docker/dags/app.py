@@ -15,6 +15,11 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator as PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
+# OpenLineage imports
+from openlineage.client.run import Dataset
+from openlineage.client.facet import SchemaDatasetFacet, SchemaField, ColumnLineageDatasetFacet, ColumnLineageDatasetFacetFieldsAdditional
+from openlineage.airflow.extractors.base import TaskMetadata
+
 #1) fetch amazon data (extract) 2) clean data (transform)
 
 headers = {
@@ -77,6 +82,25 @@ def get_amazon_data_books(num_books, ti):
     # Push the data to XCom
     ti.xcom_push(key='book_data', value=books)
 
+    # Add OpenLineage metadata
+    inlets = []
+    outlets = [
+        Dataset(
+            namespace="default",
+            name="amazon_books_data",
+            facets={
+                "schema": SchemaDatasetFacet(
+                    fields=[
+                        SchemaField(name="Title", type="string"),
+                        SchemaField(name="Author", type="string"),
+                        SchemaField(name="Price", type="string"),
+                        SchemaField(name="Rating", type="string")
+                    ]
+                )
+            }
+        )
+    ]
+
     return books
 
 #3) create and store data in table on postgres (load)
@@ -94,6 +118,65 @@ def insert_book_data_into_postgres(ti):
     """
     for book in book_data:
         postgres_hook.run(insert_query, parameters=(book['Title'], book['Author'], book['Price'], book['Rating']))
+
+    # Add OpenLineage metadata
+    inlets = [
+        Dataset(
+            namespace="default",
+            name="amazon_books_data",
+            facets={
+                "schema": SchemaDatasetFacet(
+                    fields=[
+                        SchemaField(name="Title", type="string"),
+                        SchemaField(name="Author", type="string"),
+                        SchemaField(name="Price", type="string"),
+                        SchemaField(name="Rating", type="string")
+                    ]
+                )
+            }
+        )
+    ]
+    outlets = [
+        Dataset(
+            namespace="default",
+            name="postgres.airflow.books",
+            facets={
+                "schema": SchemaDatasetFacet(
+                    fields=[
+                        SchemaField(name="id", type="integer"),
+                        SchemaField(name="title", type="string"),
+                        SchemaField(name="authors", type="string"),
+                        SchemaField(name="price", type="string"),
+                        SchemaField(name="rating", type="string")
+                    ]
+                ),
+                "columnLineage": ColumnLineageDatasetFacet(
+                    fields={
+                        "title": ColumnLineageDatasetFacetFieldsAdditional(
+                            inputFields=[
+                                "amazon_books_data.Title"
+                            ]
+                        ),
+                        "authors": ColumnLineageDatasetFacetFieldsAdditional(
+                            inputFields=[
+                                "amazon_books_data.Author"
+                            ]
+                        ),
+                        "price": ColumnLineageDatasetFacetFieldsAdditional(
+                            inputFields=[
+                                "amazon_books_data.Price"
+                            ]
+                        ),
+                        "rating": ColumnLineageDatasetFacetFieldsAdditional(
+                            inputFields=[
+                                "amazon_books_data.Rating"
+                            ]
+                        )
+                    }
+                )
+            }
+        )
+    ]
 
 
 default_args = {
@@ -120,6 +203,13 @@ fetch_book_data_task = PythonOperator(
     python_callable=get_amazon_data_books,
     op_args=[50],  # Number of books to fetch
     dag=dag,
+    inlets=[],
+    outlets=[
+        Dataset(
+            namespace="default",
+            name="amazon_books_data"
+        )
+    ]
 )
 
 create_table_task = PostgresOperator(
@@ -135,12 +225,30 @@ create_table_task = PostgresOperator(
     );
     """,
     dag=dag,
+    outlets=[
+        Dataset(
+            namespace="default",
+            name="postgres.airflow.books"
+        )
+    ]
 )
 
 insert_book_data_task = PythonOperator(
     task_id='insert_book_data',
     python_callable=insert_book_data_into_postgres,
     dag=dag,
+    inlets=[
+        Dataset(
+            namespace="default",
+            name="amazon_books_data"
+        )
+    ],
+    outlets=[
+        Dataset(
+            namespace="default",
+            name="postgres.airflow.books"
+        )
+    ]
 )
 
 #dependencies

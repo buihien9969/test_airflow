@@ -1,4 +1,5 @@
 apache-airflow-providers-postgres
 psycopg2-binary
 huggingface-hub
-
+openlineage-airflow
+openlineage-integration-common
