@@ -70,10 +70,13 @@ x-airflow-common:
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
     # yamllint enable rule:line-length
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-    # OpenLineage configuration
-    AIRFLOW__LINEAGE__BACKEND: openlineage.lineage_backend.OpenLineageBackend
-    OPENLINEAGE_URL: http://marquez:8080
-    OPENLINEAGE_NAMESPACE: default
+    # OpenMetadata configuration
+    AIRFLOW__LINEAGE__BACKEND: airflow.lineage.openmetadata.OpenMetadataLineageBackend
+    OPENMETADATA_API_ENDPOINT: http://192.168.1.29:8585/api
+    OPENMETADATA_AIRFLOW_SERVICE_NAME: airflow_local
+    OPENMETADATA_AUTH_PROVIDER_TYPE: basic
+    OPENMETADATA_AUTH_USERNAME: chiennguyen21092003@gmail.com
+    OPENMETADATA_AUTH_PASSWORD: rVJ#00_k
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}

@@ -155,22 +155,30 @@ def insert_book_data_into_postgres(ti):
                         "title": ColumnLineageDatasetFacetFieldsAdditional(
                             inputFields=[
                                 "amazon_books_data.Title"
-                            ]
+                            ],
+                            transformationDescription="Copy from source",
+                            transformationType="IDENTITY"
                         ),
                         "authors": ColumnLineageDatasetFacetFieldsAdditional(
                             inputFields=[
                                 "amazon_books_data.Author"
-                            ]
+                            ],
+                            transformationDescription="Copy from source",
+                            transformationType="IDENTITY"
                         ),
                         "price": ColumnLineageDatasetFacetFieldsAdditional(
                             inputFields=[
                                 "amazon_books_data.Price"
-                            ]
+                            ],
+                            transformationDescription="Copy from source",
+                            transformationType="IDENTITY"
                         ),
                         "rating": ColumnLineageDatasetFacetFieldsAdditional(
                             inputFields=[
                                 "amazon_books_data.Rating"
-                            ]
+                            ],
+                            transformationDescription="Copy from source",
+                            transformationType="IDENTITY"
                         )
                     }
                 )

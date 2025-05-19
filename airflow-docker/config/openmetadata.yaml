@@ -1,0 +1,25 @@
+source:
+  type: airflow
+  serviceName: airflow_local
+  serviceConnection:
+    config:
+      type: Airflow
+      hostPort: http://localhost:8080
+      numberOfStatus: 10
+      connection:
+        type: Backend
+  sourceConfig:
+    config:
+      type: PipelineMetadata
+      includeTags: true
+      includeLineage: true
+      pipelineFilterPattern: {}
+      dbServiceNames: ["postgres_default"]
+
+sink:
+  type: metadata-rest
+  config:
+    api_endpoint: http://192.168.1.29:8585/api
+    auth_provider_type: basic
+    username: chiennguyen21092003@gmail.com
+    password: rVJ#00_k

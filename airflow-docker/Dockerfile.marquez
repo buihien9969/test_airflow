@@ -1,0 +1,17 @@
+FROM marquezproject/marquez:latest
+
+# Tạo file cấu hình
+RUN mkdir -p /etc/marquez
+COPY marquez-config.yml /etc/marquez/marquez.yml
+
+# Thiết lập biến môi trường
+ENV MARQUEZ_CONFIG=/etc/marquez/marquez.yml
+
+# Sửa lỗi kết nối localhost
+RUN apt-get update && apt-get install -y netcat-openbsd
+
+# Thêm script khởi động
+COPY marquez-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/marquez-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/marquez-entrypoint.sh"]
